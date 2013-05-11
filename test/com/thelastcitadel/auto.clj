@@ -27,9 +27,12 @@
            [gen/hash-map [gen/scalars (data)]]])
     gen/collections))
 
-(defn data []
-  (let [[coll args] (rand-nth (collections data))]
+(defn coll []
+  (let [[coll args] (rand-nth (collections coll))]
     (apply coll (map (comp rand-nth seq) args))))
+
+(defn data []
+  (gen/one-of coll gen/scalar))
 
 (defn comparable-json [data]
   {:cheshire (try
