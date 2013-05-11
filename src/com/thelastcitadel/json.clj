@@ -64,13 +64,10 @@
    (yield (encode-number (double form) buffer))
    (coll? form)
    (yield (encode-array (seq form) buffer))
-   ;; (instance? Character form)
-   ;; (yield (encode-string (str form) buffer))
    (instance? Boolean form)
    (yield (encode-bool form buffer))
    :else (throw (Exception. "unknown")))
   false)
-
 
 ;;;;;;;;;;;;
 
@@ -98,22 +95,3 @@
                     true
                     (recur (.position buffer)))))
               true)))))))
-
-
-(comment
-
-  (let [bb (java.nio.ByteBuffer/allocate 10)
-        e (encoder bb)]
-    (enc e {"a" "b"})
-    (step e)
-    (step e)
-    (step e)
-    (step e)
-    (step e)
-    (step e)
-    (step e)
-    (step e)
-    (step e)
-    (String. (.array bb)))
-
-  )
