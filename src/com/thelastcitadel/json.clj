@@ -29,14 +29,45 @@
   (yield (encode-pairs (seq form) buffer))
   (.put buffer (byte (int \}))))
 
+(defnY encode-number [form buffer]
+  (encode-string* (.getBytes (.toString form) "utf8") buffer 0))
+
+(defnY encode-bool [form buffer]
+  (encode-string* (.getBytes (.toString form) "utf8") buffer 0))
+
+(defnY encode-nil [form buffer]
+  (encode-string* (.getBytes "nil" "utf8") buffer 0))
+
+(defnY encode-array* [form buffer]
+  (when (seq form)
+    (yield (encode (first form) buffer))
+    (when (seq (rest form))
+      (yield (.put buffer (byte (int \,)))))
+    (encode-array* (yield (rest form)) buffer)))
+
+(defnY encode-array [form buffer]
+  (yield (.put buffer (byte (int \[))))
+  (yield (encode-array* form buffer))
+  (.put buffer (byte (int \]))))
+
 (defnY encode [form buffer]
   (cond
+   (nil? form)
+   (yield (encode-nil form buffer))
    (string? form)
    (yield (encode-string form buffer))
    (map? form)
    (yield (encode-map form buffer))
-   (keyword? form)
+   (or (keyword? form) (symbol? form))
    (yield (encode-string (name form) buffer))
+   (number? form)
+   (yield (encode-number (double form) buffer))
+   (coll? form)
+   (yield (encode-array (seq form) buffer))
+   ;; (instance? Character form)
+   ;; (yield (encode-string (str form) buffer))
+   (instance? Boolean form)
+   (yield (encode-bool form buffer))
    :else (throw (Exception. "unknown")))
   false)
 
@@ -70,7 +101,7 @@
 
 
 (comment
-  
+
   (let [bb (java.nio.ByteBuffer/allocate 10)
         e (encoder bb)]
     (enc e {"a" "b"})
@@ -84,5 +115,5 @@
     (step e)
     (step e)
     (String. (.array bb)))
-  
+
   )
